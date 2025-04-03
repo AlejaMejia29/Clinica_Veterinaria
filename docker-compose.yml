@@ -1,0 +1,46 @@
+services:
+  #  --------------------------------------------
+  app:
+    build:
+      context: ./Veterinaria
+      dockerfile: Dockerfile
+    container_name: java-app-veterinaria
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    networks:
+      - app-network
+  #  --------------------------------------------
+  mysql:
+    build:
+      context: ./MySQL
+      dockerfile: Dockerfile
+    container_name: mysql-db-veterinaria
+    volumes:
+      - ./MySQL/mysql_data:/var/lib/mysql
+    ports:
+      - "3308:3306"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD","mysql", "-u", "usernormal", "-proot" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  #  --------------------------------------------
+  adminer:
+    image: adminer
+    container_name: adminer-veterinaria
+    depends_on:
+      - mysql
+    ports:
+      - "8083:8080"
+    networks:
+      - app-network
+#  --------------------------------------------
+networks:
+  app-network:
+    driver: bridge
+    name: app-network
